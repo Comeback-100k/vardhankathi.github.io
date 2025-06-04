@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Emoji Replacer</title>
+</head>
+<body>
+  <h2>Emoji Replacer</h2>
+
+  <textarea id="inputText" placeholder="Type your sentence..."></textarea>
+  <button onclick="replaceWithEmojis()">Convert</button>
+  <p id="outputText"></p>
+
+  <h3>Add New Emoji Mapping</h3>
+  <input id="word" placeholder="Word" />
+  <input id="emoji" placeholder="Emoji" />
+  <button onclick="addMapping()">Add Mapping</button>
+
+  <script>
+    async function getMappings() {
+      const res = await fetch('http://localhost:3000/emojis');
+      return await res.json();
+    }
+
+    async function replaceWithEmojis() {
+      const text = document.getElementById("inputText").value;
+      const mappings = await getMappings();
+      const emojiDict = {};
+      mappings.forEach(item => emojiDict[item.word.toLowerCase()] = item.emoji);
+
+      const words = text.split(" ");
+      const converted = words.map(word => emojiDict[word.toLowerCase()] || word);
+      document.getElementById("outputText").innerText = converted.join(" ");
+    }
+
+    async function addMapping() {
+      const word = document.getElementById("word").value;
+      const emoji = document.getElementById("emoji").value;
+      await fetch('http://localhost:3000/add', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ word, emoji })
+      });
+      alert("Mapping added!");
+    }
+  </script>
+</body>
+</html>
